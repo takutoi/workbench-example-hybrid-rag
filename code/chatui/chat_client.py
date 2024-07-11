@@ -19,6 +19,9 @@ import mimetypes
 import typing
 
 import requests
+import re
+
+SPLIT_CHARS = [b'\n', b' ', b'　', b'、', b'。', b'，', b'．']
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -103,17 +106,27 @@ class ChatClient:
         msg = str({"server_url": url, "post_data": data})
         print(f"making inference request - {msg}")
 
+        def split_buffer(buf):
+            for char in SPLIT_CHARS:
+                if char in buf:
+                    parts = buf.split(char)
+                    return parts[0], char, b''.join(parts[1:])
+            return buf, b'', b''
+
         with requests.post(url, stream=True, json=data, timeout=10) as req:
             buffer = b""
             for chunk in req.iter_content(chunk_size=16):
                 buffer += chunk
-                while b'\n' in buffer:
-                    line, buffer = buffer.split(b'\n', 1)
-                    if line:
-                        yield safe_decode(line)
+                while True:
+                    part, separator, remaining = split_buffer(buffer)
+                    if not separator:
+                        break
+                    if part:
+                        yield safe_decode(part + separator)
+                    buffer = remaining
             if buffer:
                 yield safe_decode(buffer)
-
+    
     def upload_documents(self, file_paths: typing.List[str]) -> None:
         """Upload documents to the kb."""
         url = f"{self.server_url}/uploadDocument"
