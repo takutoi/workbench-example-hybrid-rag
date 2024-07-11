@@ -1212,7 +1212,7 @@ def _stream_predict(
                 
                 # Every next chunk will be the generated response. Let's append to the output and render it in real time. 
                 else:
-                    chunks += chunk.encode('CP932').decode('utf-8', 'ignore')
+                    chunks += chunk.encode('cp932').decode('cp932', 'ignore')
                     chunk_num += 1
                 yield "", chat_history + [[question, chunks]], documents, gr.update(value=metrics_history), metrics_history
 
