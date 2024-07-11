@@ -23,6 +23,15 @@ import requests
 _LOGGER = logging.getLogger(__name__)
 
 
+def safe_decode(chunk: bytes) -> str:
+    encodings = ['utf-8', 'cp932', 'euc-jp', 'iso-2022-jp']
+    for encoding in encodings:
+        try:
+            return chunk.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+    return chunk.decode('utf-8', 'ignore')
+
 class ChatClient:
     """A client for connecting the the lanchain-esque service."""
 
@@ -95,8 +104,15 @@ class ChatClient:
         print(f"making inference request - {msg}")
 
         with requests.post(url, stream=True, json=data, timeout=10) as req:
-            for chunk in req.iter_content(16):
-                yield chunk.decode("UTF-8")
+            buffer = b""
+            for chunk in req.iter_content(chunk_size=16):
+                buffer += chunk
+                while b'\n' in buffer:
+                    line, buffer = buffer.split(b'\n', 1)
+                    if line:
+                        yield safe_decode(line)
+            if buffer:
+                yield safe_decode(buffer)
 
     def upload_documents(self, file_paths: typing.List[str]) -> None:
         """Upload documents to the kb."""
