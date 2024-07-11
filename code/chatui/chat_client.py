@@ -35,6 +35,13 @@ def safe_decode(chunk: bytes) -> str:
             continue
     return chunk.decode('utf-8', 'ignore')
 
+def split_buffer(buf):
+    for char in SPLIT_CHARS:
+        if char in buf:
+            parts = buf.split(char)
+            return parts[0], char, b''.join(parts[1:])
+    return buf, b'', b''
+
 class ChatClient:
     """A client for connecting the the lanchain-esque service."""
 
@@ -105,13 +112,6 @@ class ChatClient:
         )
         msg = str({"server_url": url, "post_data": data})
         print(f"making inference request - {msg}")
-
-        def split_buffer(buf):
-            for char in SPLIT_CHARS:
-                if char in buf:
-                    parts = buf.split(char)
-                    return parts[0], char, b''.join(parts[1:])
-            return buf, b'', b''
 
         with requests.post(url, stream=True, json=data, timeout=10) as req:
             buffer = b""
