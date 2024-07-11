@@ -30,6 +30,8 @@ import torch
 import tiktoken
 import fnmatch
 
+import traceback
+
 from chatui import assets, chat_client
 from chatui.pages import info
 from chatui.pages import utils
@@ -1212,7 +1214,14 @@ def _stream_predict(
                 
                 # Every next chunk will be the generated response. Let's append to the output and render it in real time. 
                 else:
-                    chunks += chunk.encode('cp932').decode('cp932', 'ignore')
+                    try:
+                        chunks += chunk
+                    except Exception as chunk_error:
+                        error_msg = f"Error processing chunk: {str(chunk_error)}\n"
+                        error_msg += f"Chunk content: {repr(chunk)}\n"
+                        error_msg += f"Traceback:\n{traceback.format_exc()}"
+                        yield "", chat_history + [[question, f"*** ERR: Unable to process chunk. ***\n\n{error_msg}"]], None, gr.update(value=metrics_history), metrics_history
+                        continue
                     chunk_num += 1
                 yield "", chat_history + [[question, chunks]], documents, gr.update(value=metrics_history), metrics_history
 
@@ -1227,4 +1236,6 @@ def _stream_predict(
 
         # Catch any exceptions and direct the user to the logs/output. 
         except Exception as e: 
-            yield "", chat_history + [[question, "*** ERR: Unable to process query. ***\n\nMessage: " + str(e)]], None, gr.update(value=metrics_history), metrics_history
+            error_msg = f"*** ERR: Unable to process query. ***\n\nMessage: {str(e)}\n"
+            error_msg += f"Traceback:\n{traceback.format_exc()}"
+            yield "", chat_history + [[question, error_msg]], None, gr.update(value=metrics_history), metrics_history
