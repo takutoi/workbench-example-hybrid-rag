@@ -37,9 +37,10 @@ def safe_decode(chunk: bytes) -> str:
 
 def split_buffer(buf):
     for char in SPLIT_CHARS:
-        if char in buf:
-            parts = buf.split(char)
-            return parts[0], char, b''.join(parts[1:])
+        encoded_char = char.encode('utf-8')
+        if encoded_char in buf:
+            parts = buf.split(encoded_char)
+            return parts[0], encoded_char, b''.join(parts[1:])
     return buf, b'', b''
 
 class ChatClient:
