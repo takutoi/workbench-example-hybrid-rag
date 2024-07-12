@@ -21,7 +21,7 @@ import typing
 import requests
 import re
 
-SPLIT_CHARS = [b'\n', b' ', b'　', b'、', b'。', b'，', b'．']
+SPLIT_CHARS = ['\n', ' ', '　', '、', '。', '，', '．']
 
 _LOGGER = logging.getLogger(__name__)
 
