@@ -121,6 +121,7 @@ class ChatClient:
                 if is_tftt:
                     is_tftt = False
                     yield safe_decode(chunk)
+                    continue
                 buffer += chunk
                 while True:
                     part, separator, remaining = split_buffer(buffer)
