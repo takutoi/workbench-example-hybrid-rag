@@ -116,7 +116,7 @@ class ChatClient:
 
         with requests.post(url, stream=True, json=data, timeout=10) as req:
             buffer = b""
-            with tftt in req.iter_content(chunk_size=16):
+            with req.iter_content(chunk_size=16) as tftt:
                 yield safe_decode(tftt)
             for chunk in req.iter_content(chunk_size=16):
                 buffer += chunk
