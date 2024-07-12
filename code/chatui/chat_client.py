@@ -116,9 +116,11 @@ class ChatClient:
 
         with requests.post(url, stream=True, json=data, timeout=10) as req:
             buffer = b""
-            with req.iter_content(chunk_size=16) as tftt:
-                yield safe_decode(tftt)
+            is_tftt = True
             for chunk in req.iter_content(chunk_size=16):
+                if is_tftt:
+                    is_tftt = False
+                    yield safe_decode(chunk)
                 buffer += chunk
                 while True:
                     part, separator, remaining = split_buffer(buffer)
