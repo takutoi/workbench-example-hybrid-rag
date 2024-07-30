@@ -382,8 +382,12 @@ def is_base64_encoded(s: str) -> bool:
 
 def ingest_docs(data_dir: str, filename: str) -> None:
     """Ingest documents to the VectorDB."""
-    unstruct_reader = download_loader("UnstructuredReader")
-    loader = unstruct_reader()
+    if Path(filename.lower()).suffix == "pdf":
+        pdf_reader = download_loader("PDFReader")
+        loader = pdf_reader()
+    else:
+        unstruct_reader = download_loader("UnstructuredReader")
+        loader = unstruct_reader()
     documents = loader.load_data(file=Path(data_dir), split_documents=False)
 
     encoded_filename = filename[:-4]
