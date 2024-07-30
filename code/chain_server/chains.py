@@ -382,7 +382,7 @@ def is_base64_encoded(s: str) -> bool:
 
 def ingest_docs(data_dir: str, filename: str) -> None:
     """Ingest documents to the VectorDB."""
-    if Path(filename.lower()).suffix == "pdf":
+    if Path(filename.lower()).suffix == ".pdf":
         pdf_reader = download_loader("CJKPDFReader")
         loader = pdf_reader()
     else:
